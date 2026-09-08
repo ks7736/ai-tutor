@@ -130,14 +130,15 @@
             }
         }
 
-        // 최신 Gemini REST API 2.5 / 2.0 모델 경로 적용
+        // 최신 gemini-3.6-flash 지원 호출 함수
         async function fetchGemini(promptText) {
             const apiKey = getApiKey();
             if (!apiKey) {
                 throw new Error("NO_KEY: API Key가 입력되지 않았습니다. 상단 입력창에 Key를 입력하고 [키 저장]을 누르세요.");
             }
 
-            const models = ['models/gemini-2.5-flash', 'models/gemini-2.0-flash'];
+            // 최신 정식 규격 모델 순서
+            const models = ['models/gemini-3.6-flash', 'models/gemini-2.5-flash'];
             let lastError = null;
 
             for (const modelPath of models) {
