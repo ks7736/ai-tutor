@@ -130,15 +130,14 @@
             }
         }
 
-        // 안정적인 Gemini REST API 호출 함수 (Fallback 모델 2중 지원)
+        // 최신 v1beta 엔드포인트 호환 모델 지원 로직 (gemini-2.0-flash / gemini-2.5-flash)
         async function fetchGemini(promptText) {
             const apiKey = getApiKey();
             if (!apiKey) {
                 throw new Error("NO_KEY: API Key가 입력되지 않았습니다. 상단 입력창에 Key를 입력하고 [키 저장]을 누르세요.");
             }
 
-            // 시도할 모델 순서 (공식 가이드라인 표준 엔드포인트)
-            const models = ['gemini-1.5-flash', 'gemini-1.5-pro'];
+            const models = ['gemini-2.0-flash', 'gemini-2.5-flash'];
             let lastError = null;
 
             for (const model of models) {
@@ -204,7 +203,6 @@
             window.speechSynthesis.speak(utterance);
         }
 
-        // Web Speech STT (실시간 음성 인식)
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             recognition = new SpeechRecognition();
