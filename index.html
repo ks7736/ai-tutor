@@ -130,14 +130,12 @@
             }
         }
 
-        // 안정적인 Gemini API 호출 로직
         async function fetchGemini(promptText) {
             const apiKey = getApiKey();
             if (!apiKey) {
                 throw new Error("NO_KEY: API Key가 입력되지 않았습니다. 상단 입력창에 Key를 입력하고 [키 저장]을 누르세요.");
             }
 
-            // 구글 Gemini v1beta REST API 주소
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
             const response = await fetch(url, {
@@ -198,7 +196,6 @@
             window.speechSynthesis.speak(utterance);
         }
 
-        // Web Speech STT (실시간 음성 인식)
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             recognition = new SpeechRecognition();
