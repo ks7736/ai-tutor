@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAIL AL Target Coach Engine</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 20px; background-color: #f5f7fa; color: #333; }
+        .container { max-width: 850px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        h1 { color: #1a73e8; border-bottom: 2px solid #e8eaed; padding-bottom: 10px; margin-bottom: 5px; }
+        .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; background: #e8f0fe; color: #1a73e8; margin-bottom: 15px; }
+        
+        /* API 키 입력 설정 섹션 */
+        .api-config-box { background: #f1f3f4; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 10px; align-items: center; }
+        .api-config-box input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+        .btn-save { background-color: #5f6368; color: white; padding: 10px 15px; font-size: 14px; }
+
+        .control-panel { margin: 20px 0; display: flex; gap: 10px; align-items: center; }
+        button { padding: 12px 24px; font-size: 16px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; transition: background 0.2s; }
+        .btn-start { background-color: #34a853; color: white; }
+        .btn-stop { background-color: #ea4335; color: white; }
+        .btn-start:disabled, .btn-stop:disabled { background-color: #ccc; cursor: not-allowed; }
+        .status { font-weight: bold; margin-top: 10px; color: #5f6368; }
+        
+        /* 실시간 자막 영역 */
+        .live-transcript-box { margin-top: 20px; padding: 15px; border: 1px solid #dadce0; border-radius: 8px; background-color: #ffffff; min-height: 80px; font-size: 16px; line-height: 1.6; }
+        .live-transcript-box label { font-size: 12px; font-weight: bold; color: #70757a; display: block; margin-bottom: 5px; }
+        .interim { color: #80868b; font-style: italic; }
+        .final { color: #202124; font-weight: 500; }
+
+        .results-card { margin-top: 25px; padding: 20px; border-left: 5px solid #1a73e8; background: #f8f9fa; border-radius: 4px; }
+        pre { white-space: pre-wrap; word-wrap: break-word; font-family: inherit; line-height: 1.5; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SAIL AL Target Coach Engine</h1>
+        <span class="badge">실시간 STT & AL 정밀 피드백 모드</span>
+        
+        <!-- API 키 사용자 직접 입력 영역 -->
+        <div class="api-config-box">
+            <input type="password" id="apiKeyInput" placeholder="Gemini API Key를 입력하세요 (브라우저에만 저장됨)">
+            <button class="btn-save" onclick="saveApiKey()">키 저장</button>
+        </div>
+
+        <p>실시간 받아쓰기와 함께 관사, 복수형, 전치사 누락 및 머뭇거림을 감지합니다.</p>
+        
+        <div class="control-panel">
+            <button id="startBtn" class="btn-start" onclick="startPractice()">녹음 & 받아쓰기 시작</button>
+            <button id="stopBtn" class="btn-stop" onclick="stopPractice()" disabled>중단 및 정밀 분석</button>
+        </div>
+        <div id="status" class="status">준비 완료</div>
+
+        <!-- 실시간 받아쓰기 박스 -->
+        <div class="live-transcript-box">
+            <label>실시간 음성 인식 (Live Transcription):</label>
+            <span id="finalTranscript" class="final"></span>
+            <span id="interimTranscript" class="interim"></span>
+        </div>
+
+        <div class="results-card">
+            <h3>AL 정밀 피드백 리포트</h3>
+            <pre id="output">API Key 입력 후 답변을 제출하면 AI 교정 피드백이 출력됩니다.</pre>
+        </div>
+    </div>
+
+    <script>
+        let mediaRecorder;
+        let audioChunks = [];
+        let recognition;
+        let isRecording = false;
+        let finalSpeechText = '';
+
+        // 페이지 로드 시 기존 저장된 API Key 불러오기
+        window.onload = () => {
+            const savedKey = localStorage.getItem('gemini_api_key');
+            if (savedKey) {
+                document.getElementById('apiKeyInput').value = savedKey;
+            }
+        };
+
+        function saveApiKey() {
+            const key = document.getElementById('apiKeyInput').value.trim();
+            if (key) {
+                localStorage.setItem('gemini_api_key', key);
+                alert('API Key가 브라우저에 안전하게 저장되었습니다.');
+            } else {
+                localStorage.removeItem('gemini_api_key');
+                alert('API Key가 삭제되었습니다.');
+            }
+        }
+
+        // Web Speech API 설정
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+
+            recognition.onresult = (event) => {
+                let interimTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        finalSpeechText += event.results[i][0].transcript + ' ';
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
+                    }
+                }
+                document.getElementById('finalTranscript').innerText = finalSpeechText;
+                document.getElementById('interimTranscript').innerText = interimTranscript;
+            };
+
+            recognition.onend = () => {
+                if (isRecording) {
+                    try { recognition.start(); } catch(e){}
+                }
+            };
+        } else {
+            alert('Chrome 브라우저 사용을 권장합니다.');
+        }
+
+        async function startPractice() {
+            const apiKey = localStorage.getItem('gemini_api_key') || document.getElementById('apiKeyInput').value.trim();
+            if (!apiKey) {
+                alert('Gemini API Key를 먼저 입력하고 저장해 주세요.');
+                return;
+            }
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+                finalSpeechText = '';
+                
+                document.getElementById('finalTranscript').innerText = '';
+                document.getElementById('interimTranscript').innerText = '';
+                document.getElementById('output').innerText = '답안을 작성하는 중입니다...';
+
+                mediaRecorder.ondataavailable = event => { audioChunks.push(event.data); };
+
+                mediaRecorder.onstop = async () => {
+                    document.getElementById('status').innerText = 'AI 분석 진행 중...';
+                    await analyzePerformance(finalSpeechText, apiKey);
+                };
+
+                isRecording = true;
+                mediaRecorder.start();
+                if (recognition) recognition.start();
+
+                document.getElementById('startBtn').disabled = true;
+                document.getElementById('stopBtn').disabled = false;
+                document.getElementById('status').innerText = '녹음 및 받아쓰기 진행 중... 답변을 말씀하세요.';
+            } catch (err) {
+                alert('마이크 접근 권한이 필요합니다: ' + err.message);
+            }
+        }
+
+        function stopPractice() {
+            isRecording = false;
+            if (recognition) recognition.stop();
+
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('stopBtn').disabled = true;
+            }
+        }
+
+        async function analyzePerformance(textScript, apiKey) {
+            if (!textScript.trim()) {
+                document.getElementById('output').innerText = "음성이 정상적으로 인식되지 않았습니다. 다시 말씀해 주세요.";
+                document.getElementById('status').innerText = '분석 취소됨';
+                return;
+            }
+
+            // Gemini API 호출 로직
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: `You are an expert ACTFL/SAIL English speaking evaluator. Analyze the candidate's transcript for an AL (Advanced Low) target grade:
+                                
+Transcript: "${textScript}"
+
+Provide detailed feedback in Korean:
+1. [Grammar Correction]: Specifically check for omitted articles (a/the), plural forms (-s), prepositions, and subject-verb agreement. Show the original sentence vs corrected sentence.
+2. [Fluency & Vocabulary]: Point out repetitive expressions and suggest natural fillers or advanced transitions.
+3. [Estimated Rating & Advice]: Give a brief evaluation for achieving AL.`
+                            }]
+                        }]
+                    })
+                });
+
+                const data = await response.json();
+                if (data.candidates && data.candidates[0].content.parts[0].text) {
+                    document.getElementById('output').innerText = data.candidates[0].content.parts[0].text;
+                } else {
+                    document.getElementById('output').innerText = "분석 결과를 가져오지 못했습니다. API Key를 확인해 주세요.";
+                }
+            } catch (error) {
+                document.getElementById('output').innerText = "API 연동 오류가 발생했습니다: " + error.message;
+            }
+
+            document.getElementById('status').innerText = '분석 완료';
+        }
+    </script>
+</body>
+</html>
