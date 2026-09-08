@@ -5,36 +5,61 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SAIL AI Tutor</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 20px; background-color: #f5f7fa; color: #333; }
-        .container { max-width: 850px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        h1 { color: #1a73e8; border-bottom: 2px solid #e8eaed; padding-bottom: 10px; margin-bottom: 20px; }
+        * { box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 15px; background-color: #f5f7fa; color: #333; }
+        .container { max-width: 850px; margin: 0 auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        h1 { color: #1a73e8; border-bottom: 2px solid #e8eaed; padding-bottom: 10px; margin-top: 0; margin-bottom: 20px; font-size: 24px; }
         
-        .api-config-box { background: #f1f3f4; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 10px; align-items: center; }
-        .api-config-box input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
-        .btn-save { background-color: #5f6368; color: white; padding: 10px 15px; font-size: 14px; border: none; border-radius: 4px; cursor: pointer; }
+        .api-config-box { background: #f1f3f4; padding: 12px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .api-config-box input { flex: 1; min-width: 200px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+        .btn-save { background-color: #5f6368; color: white; padding: 10px 15px; font-size: 14px; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap; }
 
-        .question-card { background: #f8faff; border: 1px solid #c2e7ff; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
-        .question-card h3 { margin-top: 0; color: #041e49; display: flex; justify-content: space-between; align-items: center; }
-        .matrix-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .matrix-options select { padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; }
-        .question-text { font-size: 16px; font-weight: 600; color: #1f1f1f; margin: 15px 0; line-height: 1.5; background: white; padding: 15px; border-radius: 6px; border: 1px solid #e0e0e0; white-space: pre-line; }
+        .question-card { background: #f8faff; border: 1px solid #c2e7ff; border-radius: 8px; padding: 18px; margin-bottom: 20px; }
+        .question-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px; }
+        .question-card h3 { margin: 0; color: #041e49; font-size: 18px; }
         
-        .control-panel { margin: 20px 0; display: flex; gap: 10px; align-items: center; }
+        /* 모바일 동적 레이아웃 설정 */
+        .matrix-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin-bottom: 15px; width: 100%; }
+        .matrix-options select { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; background-color: white; }
+        
+        .question-text { font-size: 16px; font-weight: 600; color: #1f1f1f; margin: 15px 0; line-height: 1.5; background: white; padding: 15px; border-radius: 6px; border: 1px solid #e0e0e0; word-break: break-word; }
+        
+        .control-panel { margin: 20px 0; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
         button { padding: 12px 20px; font-size: 15px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; transition: background 0.2s; }
-        .btn-gen { background-color: #1a73e8; color: white; }
-        .btn-start { background-color: #34a853; color: white; }
-        .btn-stop { background-color: #ea4335; color: white; }
+        .btn-gen { background-color: #1a73e8; color: white; width: auto; }
+        .btn-start { background-color: #34a853; color: white; flex: 1; min-width: 140px; }
+        .btn-stop { background-color: #ea4335; color: white; flex: 1; min-width: 140px; }
         .btn-start:disabled, .btn-stop:disabled { background-color: #ccc; cursor: not-allowed; }
-        .status { font-weight: bold; margin-top: 10px; color: #5f6368; }
+        .status { font-weight: bold; width: 100%; margin-top: 5px; color: #5f6368; font-size: 14px; }
         
-        .live-transcript-box { margin-top: 20px; padding: 15px; border: 1px solid #dadce0; border-radius: 8px; background-color: #ffffff; min-height: 80px; font-size: 16px; line-height: 1.6; }
+        .live-transcript-box { margin-top: 20px; padding: 15px; border: 1px solid #dadce0; border-radius: 8px; background-color: #ffffff; min-height: 80px; font-size: 15px; line-height: 1.6; word-break: break-word; }
         .live-transcript-box label { font-size: 12px; font-weight: bold; color: #70757a; display: block; margin-bottom: 5px; }
         .interim { color: #80868b; font-style: italic; }
         .final { color: #202124; font-weight: 500; }
 
         .results-card { margin-top: 25px; padding: 20px; border-left: 5px solid #1a73e8; background: #f8f9fa; border-radius: 4px; }
-        pre { white-space: pre-wrap; word-wrap: break-word; font-family: inherit; line-height: 1.5; }
+        .results-card h3 { margin-top: 0; }
+        
+        /* 피드백 리포트 마크다운 HTML 렌더링 스타일 */
+        .report-content { line-height: 1.6; font-size: 15px; color: #202124; }
+        .report-content h2, .report-content h3 { color: #1a73e8; margin-top: 15px; margin-bottom: 8px; border-bottom: 1px solid #e0e0e0; padding-bottom: 4px; }
+        .report-content strong { color: #041e49; background-color: #e8f0fe; padding: 2px 5px; border-radius: 3px; }
+        .report-content ul { padding-left: 20px; margin: 8px 0; }
+        .report-content li { margin-bottom: 6px; }
+        .grade-badge { display: inline-block; padding: 6px 12px; font-size: 16px; font-weight: bold; color: white; background-color: #1a73e8; border-radius: 20px; margin-bottom: 12px; }
+
         .error-log { color: #d93025; font-weight: bold; font-size: 13px; }
+
+        /* 모바일 반응형 스타일 추가 */
+        @media (max-width: 600px) {
+            body { padding: 10px; }
+            .container { padding: 15px; }
+            h1 { font-size: 20px; }
+            .question-card-header { flex-direction: column; align-items: flex-start; }
+            .btn-gen { width: 100%; margin-top: 5px; }
+            .control-panel { flex-direction: column; }
+            .btn-start, .btn-stop { width: 100%; }
+        }
     </style>
 </head>
 <body>
@@ -47,10 +72,10 @@
         </div>
 
         <div class="question-card">
-            <h3>
-                <span>문제 생성</span>
+            <div class="question-card-header">
+                <h3>문제 생성</h3>
                 <button class="btn-gen" onclick="generateQuestion()">문제 생성</button>
-            </h3>
+            </div>
             
             <div class="matrix-options">
                 <select id="domainSelect">
@@ -79,8 +104,8 @@
         <div class="control-panel">
             <button id="startBtn" class="btn-start" onclick="startPractice()">녹음 & 받아쓰기 시작</button>
             <button id="stopBtn" class="btn-stop" onclick="stopPractice()" disabled>중단 및 정밀 분석</button>
+            <div id="status" class="status">준비 완료</div>
         </div>
-        <div id="status" class="status">준비 완료</div>
 
         <div class="live-transcript-box">
             <label>실시간 음성 인식 (Live Transcription):</label>
@@ -90,7 +115,7 @@
 
         <div class="results-card">
             <h3>피드백 리포트</h3>
-            <pre id="output">답안을 제출하면 자세한 피드백을 제공합니다.</pre>
+            <div id="output" class="report-content">답안을 제출하면 자세한 피드백을 제공합니다.</div>
         </div>
     </div>
 
@@ -128,7 +153,6 @@
             }
         }
 
-        // 100% gemini-3.6-flash 전용 API 호출 함수
         async function fetchGemini(promptText) {
             const apiKey = getApiKey();
             if (!apiKey) {
@@ -192,6 +216,23 @@
             utterance.lang = 'en-US';
             utterance.rate = 0.92;
             window.speechSynthesis.speak(utterance);
+        }
+
+        // 간단한 마크다운 -> HTML 변환 렌더러 함수
+        function renderMarkdownToHTML(text) {
+            let html = text
+                .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+                .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+                .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+                .replace(/\*\*(.* vast|\*\*.*?)\*\*/gim, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/gim, '<em>$1</em>')
+                .replace(/^\* (.*$)/gim, '<li>$1</li>')
+                .replace(/^- (.*$)/gim, '<li>$1</li>')
+                .replace(/\n/g, '<br>');
+
+            // 연속된 <li>를 <ul>로 감싸기
+            html = html.replace(/(<li>.*<\/li>)/gim, '<ul>$1</ul>');
+            return html.replace(/<\/ul><br><ul>/g, '');
         }
 
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -265,18 +306,27 @@
                 return;
             }
 
-            const promptText = `You are an expert ACTFL/SAIL English evaluator for AL target grade.
+            // 프롬프트: 예상 등급을 최상단에 먼저 출력하도록 지정
+            const promptText = `You are an expert ACTFL/SAIL English evaluator.
 Question: "${currentQuestion || 'General Business Speaking'}"
 Response: "${textScript}"
 
-Provide detailed feedback in Korean:
-1. [Grammar Corrections]: Target omitted articles (a/the), plural forms (-s), prepositions, and S-V agreement. Show original vs corrected pairs.
-2. [Coherence]: Address repetitive patterns and suggest natural fillers.
-3. [AL Grade Feasibility]: Evaluate if this response passes AL.`;
+Provide detailed feedback in Korean following this STRICT structure:
+
+## [예상 등급: AL / IH / IM 중 하나]
+
+### 1. 문법 교정 (Grammar Corrections)
+- Specific omitted articles (a/the), plural forms (-s), prepositions, and S-V agreement errors. Show original vs corrected pairs.
+
+### 2. 논리 및 어휘 피드백 (Coherence & Vocabulary)
+- Repetitive expressions and suggest natural fillers or advanced transition phrases.
+
+### 3. AL 달성을 위한 총평 (Action Plan)
+- Brief advice for achieving AL grade.`;
 
             try {
                 const analysisResult = await fetchGemini(promptText);
-                document.getElementById('output').innerText = analysisResult;
+                document.getElementById('output').innerHTML = renderMarkdownToHTML(analysisResult);
             } catch (err) {
                 document.getElementById('output').innerText = `[분석 실패]\n원인: ${err.message}`;
             }
