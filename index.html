@@ -10,19 +10,25 @@
         h1 { color: #1a73e8; border-bottom: 2px solid #e8eaed; padding-bottom: 10px; margin-bottom: 5px; }
         .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; background: #e8f0fe; color: #1a73e8; margin-bottom: 15px; }
         
-        /* API 키 입력 설정 섹션 */
         .api-config-box { background: #f1f3f4; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 10px; align-items: center; }
         .api-config-box input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
         .btn-save { background-color: #5f6368; color: white; padding: 10px 15px; font-size: 14px; }
 
+        /* 다차원 매트릭스 카드 */
+        .question-card { background: #f8faff; border: 1px solid #c2e7ff; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+        .question-card h3 { margin-top: 0; color: #041e49; display: flex; justify-content: space-between; align-items: center; }
+        .matrix-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .matrix-options select { padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; }
+        .question-text { font-size: 16px; font-weight: 600; color: #1f1f1f; margin: 15px 0; line-height: 1.5; background: white; padding: 15px; border-radius: 6px; border: 1px solid #e0e0e0; }
+        
         .control-panel { margin: 20px 0; display: flex; gap: 10px; align-items: center; }
-        button { padding: 12px 24px; font-size: 16px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; transition: background 0.2s; }
+        button { padding: 12px 20px; font-size: 15px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; transition: background 0.2s; }
+        .btn-gen { background-color: #1a73e8; color: white; }
         .btn-start { background-color: #34a853; color: white; }
         .btn-stop { background-color: #ea4335; color: white; }
         .btn-start:disabled, .btn-stop:disabled { background-color: #ccc; cursor: not-allowed; }
         .status { font-weight: bold; margin-top: 10px; color: #5f6368; }
         
-        /* 실시간 자막 영역 */
         .live-transcript-box { margin-top: 20px; padding: 15px; border: 1px solid #dadce0; border-radius: 8px; background-color: #ffffff; min-height: 80px; font-size: 16px; line-height: 1.6; }
         .live-transcript-box label { font-size: 12px; font-weight: bold; color: #70757a; display: block; margin-bottom: 5px; }
         .interim { color: #80868b; font-style: italic; }
@@ -35,15 +41,43 @@
 <body>
     <div class="container">
         <h1>SAIL AL Target Coach Engine</h1>
-        <span class="badge">실시간 STT & AL 정밀 피드백 모드</span>
+        <span class="badge">Multi-dimensional Matrix & High-Level Pool</span>
         
-        <!-- API 키 사용자 직접 입력 영역 -->
         <div class="api-config-box">
-            <input type="password" id="apiKeyInput" placeholder="Gemini API Key를 입력하세요 (브라우저에만 저장됨)">
+            <input type="password" id="apiKeyInput" placeholder="Gemini API Key를 입력하세요">
             <button class="btn-save" onclick="saveApiKey()">키 저장</button>
         </div>
 
-        <p>실시간 받아쓰기와 함께 관사, 복수형, 전치사 누락 및 머뭇거림을 감지합니다.</p>
+        <!-- 다차원 문제 생성 매트릭스 -->
+        <div class="question-card">
+            <h3>
+                <span>🎯 고난도 다차원 SAIL 문제 생성</span>
+                <button class="btn-gen" onclick="generateQuestion()">고난도 문제 출제</button>
+            </h3>
+            
+            <div class="matrix-options">
+                <select id="domainSelect">
+                    <option value="random">대분류: 전체 랜덤 조합</option>
+                    <option value="AI/IT 트렌드 및 기술 혁신">1. AI/IT 트렌드 & 기술 혁신</option>
+                    <option value="HR, 채용 전략 및 조직문화">2. HR, 채용 & 조직문화</option>
+                    <option value="글로벌 경제, 경영 전략 및 ESG">3. 글로벌 경제 & ESG</option>
+                    <option value="과거 업무/프로젝트 실패 및 성공 경험">4. 과거 업무 성공/실패 사례</option>
+                    <option value="조직 내 갈등 해결 및 설득 스토리텔링">5. 갈등 해결 & 스토리텔링</option>
+                    <option value="고난도 비즈니스 롤플레이 (협상/불만해결)">6. 롤플레이 (협상/변경)</option>
+                </select>
+
+                <select id="typeSelect">
+                    <option value="random">질문 유형: 전체 랜덤</option>
+                    <option value="과거 변화 비교 및 향후 전망 (Comparison & Future Outlook)">과거 변화 비교 및 전망</option>
+                    <option value="구체적 구제책 및 프로세스 제시 (Problem Solving & Strategy)">구체적 해결책 제시</option>
+                    <option value="가상 상황 롤플레이 (Role-play Negotiation)">가상 상황 롤플레이</option>
+                    <option value="실패 사례와 레슨 포인터 (Lessons Learned from Failure)">실패 사례 및 레슨 포인트</option>
+                </select>
+            </div>
+
+            <div id="questionDisplay" class="question-text">버튼을 누르면 30개 이상의 세부 테마와 질문 유형이 조합된 AL Target 최고난도 문제가 출제됩니다.</div>
+            <button id="ttsBtn" onclick="speakQuestion()" style="display:none; padding:6px 12px; font-size:13px; background:#e8f0fe; color:#1a73e8; border:none; border-radius:4px; cursor:pointer;">🔊 질문 듣기</button>
+        </div>
         
         <div class="control-panel">
             <button id="startBtn" class="btn-start" onclick="startPractice()">녹음 & 받아쓰기 시작</button>
@@ -51,7 +85,6 @@
         </div>
         <div id="status" class="status">준비 완료</div>
 
-        <!-- 실시간 받아쓰기 박스 -->
         <div class="live-transcript-box">
             <label>실시간 음성 인식 (Live Transcription):</label>
             <span id="finalTranscript" class="final"></span>
@@ -60,37 +93,133 @@
 
         <div class="results-card">
             <h3>AL 정밀 피드백 리포트</h3>
-            <pre id="output">API Key 입력 후 답변을 제출하면 AI 교정 피드백이 출력됩니다.</pre>
+            <pre id="output">답안을 제출하면 질문과 답변을 대조하여 관사/복수형/전치사 누락 및 논리 교정을 제공합니다.</pre>
         </div>
     </div>
 
     <script>
+        // 30개 고난도 백업 데이터베이스 (Fallback Pool)
+        const fallbackQuestions = [
+            "How has the integration of generative AI impacted workplace productivity in your industry compared to five years ago, and what potential drawbacks do you foresee?",
+            "Describe a time when a project or initiative you led failed to meet its objectives. What were the root causes, and what specific lessons did you learn?",
+            "Imagine you are negotiating with a key supplier who suddenly increased prices by 20%. Call them, explain your constraints, and propose an alternative compromise.",
+            "Compare the corporate working environment of ten years ago with today's hybrid work model. Which model yields higher long-term efficiency and why?",
+            "You discovered a critical compliance error right before a major product launch. Role-play calling your director to report the issue and present two action plans.",
+            "How should traditional organizations balance immediate revenue goals with long-term ESG compliance? Provide specific strategic examples.",
+            "Describe a major conflict you experienced with a colleague or partner during a high-stakes task. How did you resolve the deadlock?",
+            "Your company is transitioning to a paperless, automated interview system, but senior managers resist the change. Persuade them in a professional voice message.",
+            "What critical leadership qualities are required to retain top tech talent during hyper-competitive recruitment cycles? Give concrete strategies.",
+            "Explain how economic fluctuations or global inflation have recently affected consumer behavior and business strategy in your business area.",
+            "Describe a situation where you had to make an urgent strategic decision with incomplete data. What was the outcome and what did you learn?",
+            "Role-play calling an unsatisfied corporate client whose service was delayed. Apologize professionally and negotiate a compensation package.",
+            "In what ways will rapid advancements in robotics and automation reshape corporate organizational structures over the next decade?",
+            "How do you evaluate whether a company culture truly fosters innovation versus merely claiming to do so? Provide specific indicators.",
+            "Describe a time when you successfully persuaded skeptical team members to adopt a completely new strategy or process.",
+            "A key client is demanding a feature that violates your team's current development roadmap. Role-play explaining the limitation and suggesting a alternative timeline.",
+            "Compare how employee performance and promotions were evaluated in the past versus how modern data-driven metrics are used today.",
+            "What step-by-step framework would you implement to overhaul a declining customer satisfaction rate in a service department?",
+            "Discuss the trade-offs between hiring specialized high-cost talent versus upskilling existing employees internally.",
+            "Role-play calling your team lead to request a deadline extension on a critical deliverable due to unexpected technical roadblocks.",
+            "How can companies balance high talent density with maintaining a healthy, collaborative company culture?",
+            "Describe a time you received constructive feedback that was difficult to accept. How did you adjust your performance afterwards?",
+            "In your opinion, how can organizations measure the tangible Return on Investment (ROI) of sustainability and ESG initiatives?",
+            "An important vendor failed to deliver components on time for a product release. Role-play confronting the vendor to demand immediate remedies.",
+            "Analyze how remote work has altered the way leaders build trust and alignment across international cross-functional teams.",
+            "Detail a complex problem in your domain that required cross-departmental collaboration to solve. What obstacles did you encounter?",
+            "How should human resource strategies evolve to effectively manage generational differences in the modern workforce?",
+            "Role-play calling an executive sponsor to propose cancelling an ongoing project that is no longer aligned with company objectives.",
+            "Compare the risk management approaches of traditional corporations with agile tech startups when launching experimental products.",
+            "What strategies should a company employ to maintain brand reputation and operational continuity during a major crisis?"
+        ];
+
         let mediaRecorder;
         let audioChunks = [];
         let recognition;
         let isRecording = false;
         let finalSpeechText = '';
+        let currentQuestion = '';
 
-        // 페이지 로드 시 기존 저장된 API Key 불러오기
         window.onload = () => {
             const savedKey = localStorage.getItem('gemini_api_key');
-            if (savedKey) {
-                document.getElementById('apiKeyInput').value = savedKey;
-            }
+            if (savedKey) document.getElementById('apiKeyInput').value = savedKey;
         };
 
         function saveApiKey() {
             const key = document.getElementById('apiKeyInput').value.trim();
             if (key) {
                 localStorage.setItem('gemini_api_key', key);
-                alert('API Key가 브라우저에 안전하게 저장되었습니다.');
+                alert('API Key가 저장되었습니다.');
             } else {
                 localStorage.removeItem('gemini_api_key');
                 alert('API Key가 삭제되었습니다.');
             }
         }
 
-        // Web Speech API 설정
+        // 다차원 매트릭스 기반 문제 생성 (Gemini API or Fallback)
+        async function generateQuestion() {
+            const apiKey = localStorage.getItem('gemini_api_key') || document.getElementById('apiKeyInput').value.trim();
+            const domain = document.getElementById('domainSelect').value;
+            const qType = document.getElementById('typeSelect').value;
+
+            document.getElementById('questionDisplay').innerText = '고난도 SAIL 매트릭스 문제 생성 중...';
+
+            if (!apiKey) {
+                // API 키가 없으면 30개 Fallback 데이터베이스에서 랜덤 추출
+                useFallbackQuestion("API 키가 설정되지 않아 30개 고난도 기출 풀에서 무작위 선택되었습니다.");
+                return;
+            }
+
+            const promptText = `Generate a very challenging, high-level English speaking test question for ACTFL AL (Advanced Low/Mid) or SAIL Advanced level.
+Domain Category: ${domain === 'random' ? 'Choose randomly from AI/IT, HR/Talent Management, ESG/Global Economy, Past Failures/Successes, or Conflict Resolution' : domain}.
+Question Format/Type: ${qType === 'random' ? 'Choose randomly from Comparison & Future Outlook, Strategic Problem Solving, Role-play Negotiation, or Lessons from Failure' : qType}.
+
+Requirements:
+- The question must be sophisticated, complex, and require structured, multi-sentence analytical speaking.
+- Do NOT use simple or elementary prompts.
+- Output ONLY the English question text directly without intro, quotes, or markdown formatting.`;
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: promptText }] }]
+                    })
+                });
+
+                const data = await response.json();
+                if (data.candidates && data.candidates[0].content.parts[0].text) {
+                    currentQuestion = data.candidates[0].content.parts[0].text.trim();
+                    document.getElementById('questionDisplay').innerText = currentQuestion;
+                    document.getElementById('ttsBtn').style.display = 'inline-block';
+                    speakQuestion();
+                } else {
+                    useFallbackQuestion("API 호출 오류로 백업 고난도 풀에서 생성되었습니다.");
+                }
+            } catch (err) {
+                useFallbackQuestion("통신 오류로 백업 고난도 풀에서 생성되었습니다.");
+            }
+        }
+
+        function useFallbackQuestion(reason) {
+            const randomIndex = Math.floor(Math.random() * fallbackQuestions.length);
+            currentQuestion = fallbackQuestions[randomIndex];
+            document.getElementById('questionDisplay').innerText = `${currentQuestion}\n\n[안내: ${reason}]`;
+            document.getElementById('ttsBtn').style.display = 'inline-block';
+            speakQuestion();
+        }
+
+        function speakQuestion() {
+            if (!currentQuestion) return;
+            window.speechSynthesis.cancel();
+            const cleanText = currentQuestion.split('\n\n[안내:')[0];
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            utterance.lang = 'en-US';
+            utterance.rate = 0.92;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // Web Speech API
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             recognition = new SpeechRecognition();
@@ -116,17 +245,9 @@
                     try { recognition.start(); } catch(e){}
                 }
             };
-        } else {
-            alert('Chrome 브라우저 사용을 권장합니다.');
         }
 
         async function startPractice() {
-            const apiKey = localStorage.getItem('gemini_api_key') || document.getElementById('apiKeyInput').value.trim();
-            if (!apiKey) {
-                alert('Gemini API Key를 먼저 입력하고 저장해 주세요.');
-                return;
-            }
-
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 mediaRecorder = new MediaRecorder(stream);
@@ -141,6 +262,7 @@
 
                 mediaRecorder.onstop = async () => {
                     document.getElementById('status').innerText = 'AI 분석 진행 중...';
+                    const apiKey = localStorage.getItem('gemini_api_key') || document.getElementById('apiKeyInput').value.trim();
                     await analyzePerformance(finalSpeechText, apiKey);
                 };
 
@@ -150,9 +272,9 @@
 
                 document.getElementById('startBtn').disabled = true;
                 document.getElementById('stopBtn').disabled = false;
-                document.getElementById('status').innerText = '녹음 및 받아쓰기 진행 중... 답변을 말씀하세요.';
+                document.getElementById('status').innerText = '녹음 및 받아쓰기 진행 중...';
             } catch (err) {
-                alert('마이크 접근 권한이 필요합니다: ' + err.message);
+                alert('마이크 접근 권한 필요: ' + err.message);
             }
         }
 
@@ -169,12 +291,17 @@
 
         async function analyzePerformance(textScript, apiKey) {
             if (!textScript.trim()) {
-                document.getElementById('output').innerText = "음성이 정상적으로 인식되지 않았습니다. 다시 말씀해 주세요.";
+                document.getElementById('output').innerText = "인식된 답변이 없습니다.";
                 document.getElementById('status').innerText = '분석 취소됨';
                 return;
             }
 
-            // Gemini API 호출 로직
+            if (!apiKey) {
+                document.getElementById('output').innerText = `[인식된 답변 스크립트]\n"${textScript}"\n\n* API Key가 제공되지 않아 상세 교정이 생략되었습니다. 상단에 Key를 저장하세요.`;
+                document.getElementById('status').innerText = '분석 완료';
+                return;
+            }
+
             try {
                 const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
                     method: 'POST',
@@ -182,14 +309,15 @@
                     body: JSON.stringify({
                         contents: [{
                             parts: [{
-                                text: `You are an expert ACTFL/SAIL English speaking evaluator. Analyze the candidate's transcript for an AL (Advanced Low) target grade:
+                                text: `You are an expert ACTFL/SAIL English evaluator for AL (Advanced Low) target grade.
                                 
-Transcript: "${textScript}"
+[Question]: "${currentQuestion || 'General Business Speaking'}"
+[Candidate Response]: "${textScript}"
 
-Provide detailed feedback in Korean:
-1. [Grammar Correction]: Specifically check for omitted articles (a/the), plural forms (-s), prepositions, and subject-verb agreement. Show the original sentence vs corrected sentence.
-2. [Fluency & Vocabulary]: Point out repetitive expressions and suggest natural fillers or advanced transitions.
-3. [Estimated Rating & Advice]: Give a brief evaluation for achieving AL.`
+Provide detailed, rigorous feedback in Korean focusing on AL criteria:
+1. [Grammar Corrections]: Specifically target omitted articles (a/the), plural forms (-s), prepositions, and subject-verb agreement. Provide original vs corrected pairs.
+2. [Coherence & Advanced Vocabulary]: Address repetitive patterns and suggest advanced transitions (e.g., 'What I mean is...', 'From a strategic standpoint...').
+3. [AL Feasibility Score]: Evaluate if this response passes AL and provide strategic guidance.`
                             }]
                         }]
                     })
@@ -199,10 +327,10 @@ Provide detailed feedback in Korean:
                 if (data.candidates && data.candidates[0].content.parts[0].text) {
                     document.getElementById('output').innerText = data.candidates[0].content.parts[0].text;
                 } else {
-                    document.getElementById('output').innerText = "분석 결과를 가져오지 못했습니다. API Key를 확인해 주세요.";
+                    document.getElementById('output').innerText = "분석 리포트 생성 실패. API Key를 확인해 주세요.";
                 }
             } catch (error) {
-                document.getElementById('output').innerText = "API 연동 오류가 발생했습니다: " + error.message;
+                document.getElementById('output').innerText = "오류 발생: " + error.message;
             }
 
             document.getElementById('status').innerText = '분석 완료';
