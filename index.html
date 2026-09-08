@@ -130,34 +130,42 @@
             }
         }
 
+        // 안정적인 Gemini REST API 호출 함수 (Fallback 모델 2중 지원)
         async function fetchGemini(promptText) {
             const apiKey = getApiKey();
             if (!apiKey) {
                 throw new Error("NO_KEY: API Key가 입력되지 않았습니다. 상단 입력창에 Key를 입력하고 [키 저장]을 누르세요.");
             }
 
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+            // 시도할 모델 순서 (공식 가이드라인 표준 엔드포인트)
+            const models = ['gemini-1.5-flash', 'gemini-1.5-pro'];
+            let lastError = null;
 
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: promptText }] }]
-                })
-            });
+            for (const model of models) {
+                try {
+                    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{ parts: [{ text: promptText }] }]
+                        })
+                    });
 
-            const data = await response.json();
+                    const data = await response.json();
 
-            if (!response.ok) {
-                const errorMsg = data.error?.message || `HTTP 오류 (${response.status})`;
-                throw new Error(`API 오류 (${response.status}): ${errorMsg}`);
+                    if (response.ok && data.candidates && data.candidates[0].content.parts[0].text) {
+                        return data.candidates[0].content.parts[0].text.trim();
+                    } else {
+                        const errMsg = data.error?.message || `HTTP 오류 (${response.status})`;
+                        lastError = `[${model}] ${errMsg}`;
+                    }
+                } catch (err) {
+                    lastError = `[${model}] 통신 오류: ${err.message}`;
+                }
             }
 
-            if (!data.candidates || !data.candidates[0].content.parts[0].text) {
-                throw new Error("응답 결과가 올바르지 않습니다.");
-            }
-
-            return data.candidates[0].content.parts[0].text.trim();
+            throw new Error(lastError || "모든 모델 호출에 실패했습니다.");
         }
 
         async function generateQuestion() {
@@ -196,6 +204,7 @@
             window.speechSynthesis.speak(utterance);
         }
 
+        // Web Speech STT (실시간 음성 인식)
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             recognition = new SpeechRecognition();
