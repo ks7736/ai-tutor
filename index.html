@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SAIL AL Target Coach Engine</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 20px; background-color: #f5f7fa; color: #333; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 20px; background-color: #f5f7fa; color: #333; }
         .container { max-width: 850px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         h1 { color: #1a73e8; border-bottom: 2px solid #e8eaed; padding-bottom: 10px; margin-bottom: 5px; }
         .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; background: #e8f0fe; color: #1a73e8; margin-bottom: 15px; }
@@ -130,19 +130,18 @@
             }
         }
 
-        // 최신 v1beta 엔드포인트 호환 모델 지원 로직 (gemini-2.0-flash / gemini-2.5-flash)
         async function fetchGemini(promptText) {
             const apiKey = getApiKey();
             if (!apiKey) {
                 throw new Error("NO_KEY: API Key가 입력되지 않았습니다. 상단 입력창에 Key를 입력하고 [키 저장]을 누르세요.");
             }
 
-            const models = ['gemini-2.0-flash', 'gemini-2.5-flash'];
+            const models = ['models/gemini-2.5-flash', 'models/gemini-2.0-flash'];
             let lastError = null;
 
-            for (const model of models) {
+            for (const modelPath of models) {
                 try {
-                    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+                    const url = `https://generativelanguage.googleapis.com/v1beta/${modelPath}:generateContent?key=${apiKey}`;
                     const response = await fetch(url, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -157,10 +156,10 @@
                         return data.candidates[0].content.parts[0].text.trim();
                     } else {
                         const errMsg = data.error?.message || `HTTP 오류 (${response.status})`;
-                        lastError = `[${model}] ${errMsg}`;
+                        lastError = `[${modelPath}] ${errMsg}`;
                     }
                 } catch (err) {
-                    lastError = `[${model}] 통신 오류: ${err.message}`;
+                    lastError = `[${modelPath}] 통신 오류: ${err.message}`;
                 }
             }
 
