@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SAIL AL Target Coach Engine</title>
+    <title>SAIL AI Tutor</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 20px; background-color: #f5f7fa; color: #333; }
         .container { max-width: 850px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        h1 { color: #1a73e8; border-bottom: 2px solid #e8eaed; padding-bottom: 10px; margin-bottom: 5px; }
-        .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; background: #e8f0fe; color: #1a73e8; margin-bottom: 15px; }
+        h1 { color: #1a73e8; border-bottom: 2px solid #e8eaed; padding-bottom: 10px; margin-bottom: 20px; }
         
         .api-config-box { background: #f1f3f4; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 10px; align-items: center; }
         .api-config-box input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
@@ -40,8 +39,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>SAIL AL Target Coach Engine</h1>
-        <span class="badge">Multi-dimensional Matrix & High-Level Pool</span>
+        <h1>SAIL AI Tutor</h1>
         
         <div class="api-config-box">
             <input type="password" id="apiKeyInput" placeholder="Google AI Studio에서 발급받은 Gemini API Key를 입력하세요">
@@ -50,8 +48,8 @@
 
         <div class="question-card">
             <h3>
-                <span>🎯 고난도 다차원 SAIL 문제 생성</span>
-                <button class="btn-gen" onclick="generateQuestion()">고난도 문제 출제</button>
+                <span>문제 생성</span>
+                <button class="btn-gen" onclick="generateQuestion()">문제 생성</button>
             </h3>
             
             <div class="matrix-options">
@@ -74,7 +72,7 @@
                 </select>
             </div>
 
-            <div id="questionDisplay" class="question-text">상단의 [키 저장]을 진행하신 후 [고난도 문제 출제] 버튼을 누르시면 SAIL AL Target 문제가 출제됩니다.</div>
+            <div id="questionDisplay" class="question-text">상단의 [키 저장]을 진행하신 후 [문제 생성] 버튼을 누르시면 문제가 출제됩니다.</div>
             <button id="ttsBtn" onclick="speakQuestion()" style="display:none; padding:6px 12px; font-size:13px; background:#e8f0fe; color:#1a73e8; border:none; border-radius:4px; cursor:pointer;">🔊 질문 듣기</button>
         </div>
         
@@ -91,8 +89,8 @@
         </div>
 
         <div class="results-card">
-            <h3>AL 정밀 피드백 리포트</h3>
-            <pre id="output">답안을 제출하면 질문과 답변을 대조하여 관사/복수형/전치사 누락 및 논리 교정을 제공합니다.</pre>
+            <h3>피드백 리포트</h3>
+            <pre id="output">답안을 제출하면 자세한 피드백을 제공합니다.</pre>
         </div>
     </div>
 
@@ -123,54 +121,46 @@
             const key = document.getElementById('apiKeyInput').value.trim();
             if (key) {
                 localStorage.setItem('gemini_api_key', key);
-                alert('API Key가 브라우저에 저장되었습니다.');
+                alert('API Key가 저장되었습니다.');
             } else {
                 localStorage.removeItem('gemini_api_key');
                 alert('API Key가 삭제되었습니다.');
             }
         }
 
-        // 최신 gemini-3.6-flash 모델 호환 전용 함수
         async function fetchGemini(promptText) {
             const apiKey = getApiKey();
             if (!apiKey) {
-                throw new Error("NO_KEY: API Key가 입력되지 않았습니다. 상단 입력창에 Key를 입력하고 [키 저장]을 누르세요.");
+                throw new Error("API Key가 입력되지 않았습니다. 상단 입력창에 Key를 입력하고 [키 저장]을 누르세요.");
             }
 
-            const models = ['models/gemini-3.6-flash', 'models/gemini-2.5-flash'];
-            let lastError = null;
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
-            for (const modelPath of models) {
-                try {
-                    const url = `https://generativelanguage.googleapis.com/v1beta/${modelPath}:generateContent?key=${apiKey}`;
-                    const response = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            contents: [{ parts: [{ text: promptText }] }]
-                        })
-                    });
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: promptText }] }]
+                })
+            });
 
-                    const data = await response.json();
+            const data = await response.json();
 
-                    if (response.ok && data.candidates && data.candidates[0].content.parts[0].text) {
-                        return data.candidates[0].content.parts[0].text.trim();
-                    } else {
-                        const errMsg = data.error?.message || `HTTP 오류 (${response.status})`;
-                        lastError = `[${modelPath}] ${errMsg}`;
-                    }
-                } catch (err) {
-                    lastError = `[${modelPath}] 통신 오류: ${err.message}`;
-                }
+            if (!response.ok) {
+                throw new Error(data.error?.message || `HTTP 오류 (${response.status})`);
             }
 
-            throw new Error(lastError || "모든 모델 호출에 실패했습니다.");
+            if (!data.candidates || !data.candidates[0].content.parts[0].text) {
+                throw new Error("응답 결과가 올바르지 않습니다.");
+            }
+
+            return data.candidates[0].content.parts[0].text.trim();
         }
 
         async function generateQuestion() {
             const domain = document.getElementById('domainSelect').value;
             const qType = document.getElementById('typeSelect').value;
-            document.getElementById('questionDisplay').innerText = '고난도 SAIL 매트릭스 문제 생성 중...';
+            document.getElementById('questionDisplay').innerText = '문제 생성 중...';
 
             const promptText = `Generate a high-level English speaking test question for ACTFL AL (Advanced Low) or SAIL test. Domain: ${domain}, Format: ${qType}. Output ONLY the English question without markdown or quotes.`;
 
