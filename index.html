@@ -39,7 +39,6 @@
         .results-card { margin-top: 25px; padding: 20px; border-left: 5px solid #1a73e8; background: #f8f9fa; border-radius: 4px; }
         .results-card h3 { margin-top: 0; }
         
-        /* 피드백 리포트 스타일 */
         .report-content { line-height: 1.6; font-size: 15px; color: #202124; }
         .report-content h2 { color: #1a73e8; font-size: 18px; margin-top: 15px; margin-bottom: 10px; border-bottom: 2px solid #1a73e8; padding-bottom: 4px; }
         .report-content h3 { color: #041e49; font-size: 16px; margin-top: 15px; margin-bottom: 8px; }
@@ -216,7 +215,6 @@
             window.speechSynthesis.speak(utterance);
         }
 
-        // 안전하게 HTML 태그로 마크다운을 치환하는 함수
         function renderMarkdownToHTML(text) {
             let html = text
                 .replace(/^### (.*$)/gim, '<h3>$1</h3>')
